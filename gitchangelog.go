@@ -111,8 +111,6 @@ func Map(repository, revision string) (*GitRepo, error) {
 		}
 	}
 
-	fmt.Printf("%+v\n\n", m["testfiles/d1/d1.txt"][1])
-
 	return &GitRepo{Files: m, TopLevelAbsPath: topLevelPath}, nil
 }
 
@@ -143,7 +141,7 @@ func toGitInfo(entry string) (*GitInfo, error) {
 		return nil, err
 	}
 
-	return &GitInfo{
+	return &GitChangelog{
 		Hash:            items[0],
 		AbbreviatedHash: items[1],
 		Subject:         items[2],
