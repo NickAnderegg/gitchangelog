@@ -141,7 +141,7 @@ func toGitInfo(entry string) (*GitInfo, error) {
 		return nil, err
 	}
 
-	return &GitChangelog{
+	return &GitInfo{
 		Hash:            items[0],
 		AbbreviatedHash: items[1],
 		Subject:         items[2],
