@@ -3,7 +3,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package gitmap
+package gitchangelog
 
 import (
 	"bytes"
@@ -31,11 +31,15 @@ type GitRepo struct {
 	TopLevelAbsPath string
 
 	// The files in this Git repository.
-	Files GitMap
+	Files GitChangelog
 }
 
-// GitMap maps filenames to Git revision information.
-type GitMap map[string]*GitInfo
+// GitChangelog maps filenames to Git revision information.
+// type GitChangelog map[string]*GitInfo
+
+type ChangeHistory = []*GitInfo
+
+type GitChangelog map[string]ChangeHistory
 
 // GitInfo holds information about a Git commit.
 type GitInfo struct {
@@ -51,7 +55,7 @@ type GitInfo struct {
 // Map creates a GitRepo with a file map from the given repository path and revision.
 // Use blank or HEAD as revision for the currently active revision.
 func Map(repository, revision string) (*GitRepo, error) {
-	m := make(GitMap)
+	m := make(GitChangelog)
 
 	// First get the top level repo path
 	absRepoPath, err := filepath.Abs(repository)
@@ -74,7 +78,7 @@ func Map(repository, revision string) (*GitRepo, error) {
 		revision,
 	))
 
-	gitLogArgs = append([]string{"-c", "diff.renames=0", "-C", repository, "log"}, gitLogArgs...)	
+	gitLogArgs = append([]string{"-c", "diff.renames=0", "-C", repository, "log"}, gitLogArgs...)
 	out, err = git(gitLogArgs...)
 
 	if err != nil {
@@ -84,6 +88,7 @@ func Map(repository, revision string) (*GitRepo, error) {
 	entriesStr := string(out)
 	entriesStr = strings.Trim(entriesStr, "\n\x1e'")
 	entries := strings.Split(entriesStr, "\x1e")
+
 
 	for _, e := range entries {
 		lines := strings.Split(e, "\n")
@@ -99,10 +104,14 @@ func Map(repository, revision string) (*GitRepo, error) {
 				continue
 			}
 			if _, ok := m[filename]; !ok {
-				m[filename] = gitInfo
+				m[filename] = make(ChangeHistory, 0)
 			}
+
+			m[filename] = append(m[filename], gitInfo)
 		}
 	}
+
+	fmt.Printf("%+v\n\n", m["testfiles/d1/d1.txt"][1])
 
 	return &GitRepo{Files: m, TopLevelAbsPath: topLevelPath}, nil
 }
